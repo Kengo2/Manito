@@ -364,6 +364,7 @@ main{padding-bottom:150px}
       <h2>¿Para quién es?</h2>
       <div class="field"><label for="cNombre">Nombre del cliente</label><input id="cNombre" autocomplete="off" placeholder="Ej.: Sra. Carmen Mendoza"></div>
       <div class="field"><label for="cTel">WhatsApp del cliente (opcional)</label><input id="cTel" inputmode="tel" placeholder="09…"></div>
+      <div class="field"><label for="cEmail">Correo del cliente</label><input id="cEmail" type="email" inputmode="email" autocomplete="off" placeholder="cliente@correo.com"><span class="hint">Le enviaremos la proforma en PDF por correo.</span></div>
       <div class="field"><label for="cLugar">Lugar del trabajo</label><input id="cLugar" placeholder="Ej.: Cdla. Los Tamarindos, Portoviejo"></div>
     </div>
 
@@ -389,6 +390,7 @@ main{padding-bottom:150px}
     <div class="panel" data-p="4">
       <h2>Revisa y envía</h2>
       <div class="sheet-wrap"><div class="sheet" id="sheet"></div></div>
+      <button class="btn btn-sec" type="button" id="emailOnly">Enviar solo por correo</button>
       <button class="btn btn-sec" type="button" id="download">Descargar PDF</button>
       <p class="status" id="status" aria-live="polite"></p>
     </div>
@@ -445,9 +447,10 @@ main{padding-bottom:150px}
       </div>
       <div class="row2">
         <div class="field"><label for="dCiudad">Ciudad</label><input id="dCiudad" placeholder="Ej.: Portoviejo"></div>
-        <div class="field"><label for="dEmail">Correo</label><input id="dEmail" inputmode="email" placeholder="Opcional"></div>
+        <div class="field"><label for="dEmail">Tu correo</label><input id="dEmail" type="email" inputmode="email" placeholder="Para recibir copia"></div>
       </div>
       <button class="btn btn-main" type="button" id="saveDatos">Guardar mis datos</button>
+      <p class="hint">Las proformas que envíes se guardan como respaldo en Manito. Si escribes tu correo, recibirás una copia de cada una.</p>
     </div>
   </div>
 </section>
@@ -523,7 +526,7 @@ $('prodAdd').addEventListener('click',()=>{const list=favs('p'); list.push({d:''
 
 /* ---------- borrador ---------- */
 let items=[], editingNo=null, step=1, val=15, ant=50;
-function resetDraft(){ items=[{d:'',q:1,p:''}]; editingNo=null; ['cNombre','cTel','cLugar','plazo','notas'].forEach(id=>$(id).value=''); $('iva').checked=false; val=15; ant=50; $('status').textContent=''; renderItems(); setSeg(); }
+function resetDraft(){ items=[{d:'',q:1,p:''}]; editingNo=null; ['cNombre','cTel','cEmail','cLugar','plazo','notas'].forEach(id=>$(id).value=''); $('iva').checked=false; val=15; ant=50; $('status').textContent=''; renderItems(); setSeg(); }
 function loadDemo(){ resetDraft(); $('cNombre').value='Sra. Carmen Mendoza'; $('cLugar').value='Cdla. Los Tamarindos, Portoviejo'; $('plazo').value='2 días'; $('notas').value='Garantía de 3 meses en mano de obra.'; items=[{d:'Instalación de punto de luz',q:6,p:15},{d:'Instalación de tomacorriente',q:4,p:12},{d:'Materiales (cable, cajetines, interruptores)',q:1,p:68}]; renderItems(); }
 
 function renderQuick(){ const used=new Set(items.map(it=>String(it.d).toLowerCase())); $('quick').innerHTML=favs(tipo).map((f,i)=>`<button class="chip${used.has(f.d.toLowerCase())?' added':''}" type="button" data-i="${i}">${esc(f.d)} · <b>${money(f.p)}</b></button>`).join(''); }
@@ -557,7 +560,7 @@ function update(){ const c=calc(); $('barTotal').textContent=money(c.total);
   if(step===4) renderSheet(); }
 
 const nextNo=()=>store.get('seq',0)+1;
-function docData(){ const c=calc(); return {no:editingNo||nextNo(),fecha:today(),cliente:$('cNombre').value.trim(),ctel:$('cTel').value.trim(),lugar:$('cLugar').value.trim(),items:c.valid.map(it=>({d:String(it.d).trim(),q:num(it.q),p:num(it.p),t:it.t||'s'})),sub:c.sub,iva:c.iva,total:c.total,validez:val,anticipo:ant,plazo:$('plazo').value.trim(),notas:$('notas').value.trim(),conIva:$('iva').checked}; }
+function docData(){ const c=calc(); return {no:editingNo||nextNo(),fecha:today(),cliente:$('cNombre').value.trim(),ctel:$('cTel').value.trim(),cemail:$('cEmail').value.trim(),lugar:$('cLugar').value.trim(),items:c.valid.map(it=>({d:String(it.d).trim(),q:num(it.q),p:num(it.p),t:it.t||'s'})),sub:c.sub,iva:c.iva,total:c.total,validez:val,anticipo:ant,plazo:$('plazo').value.trim(),notas:$('notas').value.trim(),conIva:$('iva').checked}; }
 function sheetHTML(d){ const b=D(); const c1=[b.oficio==='Solo vendo productos'?b.productos:b.oficio,b.ciudad].filter(Boolean).join(' · '); const c2=[b.tel&&('Cel. '+b.tel),b.ruc&&('RUC/CI '+b.ruc),b.email].filter(Boolean).join(' · ');
   return `<div class="hd">${b.logo?`<img src="${b.logo}" alt="">`:''}<div class="biz"><b>${esc(b.nombre||'Tu nombre o negocio')}</b><span>${esc(c1)}</span><span>${esc(c2)}</span></div><div class="no"><b>PROFORMA</b><span>N.º ${fmtNo(d.no)}</span><span>${esc(d.fecha)}</span></div></div>
   <div class="cl"><div><em>Cliente</em>${esc(d.cliente||'—')}</div><div><em>Lugar</em>${esc(d.lugar||'—')}</div>${d.ctel?`<div><em>Teléfono</em>${esc(d.ctel)}</div>`:''}${d.plazo?`<div><em>Tiempo de trabajo</em>${esc(d.plazo)}</div>`:''}</div>
@@ -574,6 +577,7 @@ function showStep(s){ step=s; document.querySelectorAll('.panel').forEach(p=>p.c
   $('next').className='btn '+(s===4?'btn-wa':'btn-main'); $('next').innerHTML=s===4?WA+'Enviar':'Siguiente';
   if(s===4) renderSheet(); window.scrollTo(0,0); }
 function canLeave(s){ if(s===1&&!$('cNombre').value.trim()){ $('cNombre').focus(); toast('Escribe el nombre del cliente'); return false; }
+  if(s===1&&$('cEmail').value.trim()&&!okMail($('cEmail').value)){ $('cEmail').focus(); toast('Revisa el correo del cliente'); return false; }
   if(s===2&&!calc().valid.length){ toast('Agrega al menos un servicio o producto'); return false; } return true; }
 $('next').addEventListener('click',()=>{ if(step<4){ if(canLeave(step)) showStep(step+1); } else send(); });
 $('prev').addEventListener('click',()=>{ if(step===1) location.hash='#inicio'; else showStep(step-1); });
@@ -617,18 +621,42 @@ function fileName(d){ const c=(d.cliente||'cliente').normalize('NFD').replace(/[
 function commit(d){ const hist=store.get('hist',[]); const i=hist.findIndex(h=>h.no===d.no); const prev=i>=0?hist[i]:null; const rec={...d,estado:prev?prev.estado:'enviada',ts:prev?prev.ts:Date.now()}; if(i>=0) hist[i]=rec; else hist.unshift(rec); store.set('hist',hist.slice(0,200)); if(d.no>=nextNo()) store.set('seq',d.no); d.items.forEach(it=>rememberFav(it.d,it.p,it.t)); editingNo=d.no; }
 const waText=d=>`Hola${d.cliente?' '+d.cliente:''}, le envío la proforma N.º ${fmtNo(d.no)} por ${money(d.total)}. ${D().nombre||''}`.trim();
 const waLink=d=>{const p=String(d.ctel||'').replace(/\D/g,''); return p?`https://wa.me/${p.startsWith('0')?'593'+p.slice(1):p}?text=${encodeURIComponent(waText(d))}`:'';};
-async function shareDoc(d,statusEl){
+async function shareDoc(d,statusEl,reenvio){
   if(!window.jspdf){ statusEl.textContent='No se pudo preparar el PDF. Revisa tu conexión y vuelve a intentar.'; return false; }
   const doc=buildPDF(d); const file=new File([doc.output('blob')],fileName(d),{type:'application/pdf'});
-  try{ if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:'Proforma '+fmtNo(d.no),text:waText(d)}); statusEl.textContent='Listo. Si no la enviaste, puedes reenviarla desde Mis proformas.'; return true; } }
-  catch(e){ if(e&&e.name==='AbortError'){ statusEl.textContent='Envío cancelado.'; return false; } }
-  try{ doc.save(fileName(d)); statusEl.textContent='PDF descargado. Adjúntalo en WhatsApp desde tus archivos.'; }catch(e){ statusEl.textContent='Este navegador no permite descargar el PDF desde aquí.'; }
+  statusEl.textContent=''; postEmail(d,doc,statusEl,arguments[2]);
+  try{ if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:'Proforma '+fmtNo(d.no),text:waText(d)}); statusEl.prepend('Listo. Si no la enviaste, puedes reenviarla desde Mis proformas.'); return true; } }
+  catch(e){ if(e&&e.name==='AbortError'){ statusEl.prepend('Envío por WhatsApp cancelado.'); return false; } }
+  try{ doc.save(fileName(d)); statusEl.prepend('PDF descargado. Adjúntalo en WhatsApp desde tus archivos.'); }catch(e){ statusEl.prepend('Este navegador no permite descargar el PDF desde aquí.'); }
   const wl=waLink(d); if(wl){ const a=document.createElement('a'); a.href=wl; a.target='_blank'; a.rel='noopener'; a.textContent='Abrir el chat del cliente'; statusEl.append(document.createElement('br'),a); }
   return true;
 }
 async function send(){ const d=docData(); if(!canLeave(1)||!canLeave(2)) return; commit(d); await shareDoc(d,$('status')); }
+$('emailOnly').addEventListener('click',async()=>{ const d=docData(); if(!canLeave(1)||!canLeave(2)) return;
+  if(!okMail(d.cemail)){ showStep(1); $('cEmail').focus(); toast('Escribe un correo válido del cliente'); return; }
+  if(!scriptReady()){ $('status').textContent='El envío por correo aún no está conectado.'; return; }
+  if(!window.jspdf){ $('status').textContent='No se pudo preparar el PDF.'; return; }
+  commit(d); $('status').textContent=''; await postEmail(d,buildPDF(d),$('status')); });
 $('download').addEventListener('click',()=>{ const d=docData(); if(!canLeave(1)||!canLeave(2)) return; if(!window.jspdf){ $('status').textContent='No se pudo preparar el PDF.'; return; } commit(d); try{ buildPDF(d).save(fileName(d)); $('status').textContent='PDF descargado.'; }catch(e){ $('status').textContent='Este navegador no permite descargar el PDF desde aquí.'; } });
 
+/* ---------- correo y registro (Google Apps Script) ---------- */
+const SCRIPT_URL='PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT';
+const TOKEN='manito-2026';
+const okMail=s=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s||'').trim());
+const scriptReady=()=>/^https:\/\/script\.google\.com\//.test(SCRIPT_URL);
+async function postEmail(d,doc,statusEl,reenvio){
+  if(!scriptReady()) return;
+  const b=D(); const line=document.createElement('span'); statusEl.append(document.createElement('br'),line);
+  const quien=[d.cemail&&okMail(d.cemail)?d.cemail:'',b.email&&okMail(b.email)?b.email:''].filter(Boolean);
+  line.textContent=quien.length?'Enviando correo…':'Guardando respaldo…';
+  try{
+    const payload={token:TOKEN,reenvio:!!reenvio,no:fmtNo(d.no),fecha:d.fecha,negocio:b.nombre,oficio:b.oficio,uemail:b.email,utel:b.tel,cliente:d.cliente,cemail:d.cemail||'',ctel:d.ctel,lugar:d.lugar,items:d.items,sub:d.sub,iva:d.iva,total:d.total,anticipo:d.anticipo,validez:d.validez,filename:fileName(d),pdf:quien.length?doc.output('datauristring').split(',')[1]:''};
+    const r=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+    let res=null; try{ res=await r.json(); }catch(e){}
+    if(res&&res.ok===false) throw new Error(res.error||'error');
+    line.textContent=quien.length?`Correo enviado a ${quien.join(' y ')}.`:'Respaldo guardado.';
+  }catch(e){ line.textContent='No se pudo enviar el correo. Revisa tu conexión e inténtalo de nuevo.'; }
+}
 /* ---------- mis proformas ---------- */
 let hFilter='';
 const ESTADOS={enviada:'Pendiente',aceptada:'Aceptada',rechazada:'No aceptada'};
@@ -649,7 +677,7 @@ $('hFilter').addEventListener('click',e=>{const b=e.target.closest('button'); if
 $('histList').addEventListener('click',async e=>{const b=e.target.closest('[data-act]'); if(!b) return; const card=b.closest('.rec'); const no=+card.dataset.no; const hist=store.get('hist',[]); const r=hist.find(h=>h.no===no); if(!r) return;
   if(b.dataset.act==='estado'){ const order=['enviada','aceptada','rechazada']; r.estado=order[(order.indexOf(r.estado)+1)%3]; store.set('hist',hist); renderHist(); toast('Marcada: '+ESTADOS[r.estado]); }
   if(b.dataset.act==='dup'){ resetDraft(); items=r.items.map(it=>({...it})); val=r.validez||15; ant=r.anticipo||0; $('plazo').value=r.plazo||''; $('notas').value=r.notas||''; $('iva').checked=!!r.conIva; renderItems(); setSeg(); step=1; location.hash='#nueva'; toast('Copiada. Escribe el nuevo cliente.'); }
-  if(b.dataset.act==='send'){ const st=card.querySelector('.status'); st.hidden=false; st.textContent=''; await shareDoc(r,st); }
+  if(b.dataset.act==='send'){ const st=card.querySelector('.status'); st.hidden=false; st.textContent=''; await shareDoc(r,st,true); }
 });
 
 /* ---------- inicio ---------- */
