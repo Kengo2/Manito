@@ -640,7 +640,7 @@ $('emailOnly').addEventListener('click',async()=>{ const d=docData(); if(!canLea
 $('download').addEventListener('click',()=>{ const d=docData(); if(!canLeave(1)||!canLeave(2)) return; if(!window.jspdf){ $('status').textContent='No se pudo preparar el PDF.'; return; } commit(d); try{ buildPDF(d).save(fileName(d)); $('status').textContent='PDF descargado.'; }catch(e){ $('status').textContent='Este navegador no permite descargar el PDF desde aquí.'; } });
 
 /* ---------- correo y registro (Google Apps Script) ---------- */
-const SCRIPT_URL='PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxpYhLX7f_3sXlL5842Mb1aWU6Y9o3q5q2yBYJb9dL4DTjqL4IYwHDMBoKRGtAN604c/exec';
 const TOKEN='manito-2026';
 const okMail=s=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s||'').trim());
 const scriptReady=()=>/^https:\/\/script\.google\.com\//.test(SCRIPT_URL);
