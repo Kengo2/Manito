@@ -438,6 +438,7 @@ main{padding-bottom:150px}
       <div class="logo-pick"><div class="ph" id="logoPh">Sin logo</div><div class="field" style="flex:1"><label for="dLogo">Logo o foto (opcional)</label><input id="dLogo" type="file" accept="image/*"></div></div>
       <div class="field"><label for="dNombre">Tu nombre o el de tu negocio</label><input id="dNombre" placeholder="Ej.: Electricidad Hnos. Zambrano"></div>
       <div class="field"><label for="dOficio">Servicios</label><select id="dOficio"></select></div>
+      <div class="field"><label for="dProd">Mis productos</label><input id="dProd" placeholder="Ej.: muebles, uniformes"></div>
       <div class="row2">
         <div class="field"><label for="dTel">WhatsApp</label><input id="dTel" inputmode="tel" placeholder="09…"></div>
         <div class="field"><label for="dRuc">RUC o cédula</label><input id="dRuc" inputmode="numeric" placeholder="Opcional"></div>
@@ -496,12 +497,12 @@ const hasDatos=()=>!!(datos&&datos.nombre);
 const D=()=>datos||{nombre:'',oficio:'Electricista',tel:'',ruc:'',ciudad:'',email:'',productos:'',logo:''};
 $('dOficio').innerHTML=Object.keys(OFICIOS).map(o=>`<option>${o}</option>`).join('');
 let logoTmp='';
-function loadDatosForm(){ const d=D(); $('dNombre').value=d.nombre; $('dOficio').value=d.oficio||'Electricista'; $('dTel').value=d.tel; $('dRuc').value=d.ruc; $('dCiudad').value=d.ciudad; $('dEmail').value=d.email; logoTmp=d.logo||''; showLogo(); }
+function loadDatosForm(){ const d=D(); $('dNombre').value=d.nombre; $('dOficio').value=d.oficio||'Electricista'; $('dTel').value=d.tel; $('dRuc').value=d.ruc; $('dCiudad').value=d.ciudad; $('dEmail').value=d.email; $('dProd').value=d.productos||''; logoTmp=d.logo||''; showLogo(); }
 function showLogo(){ $('logoPh').innerHTML=logoTmp?`<img src="${logoTmp}" alt="Logo">`:'Sin logo'; }
 $('dLogo').addEventListener('change',e=>{const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{const img=new Image(); img.onload=()=>{const c=document.createElement('canvas'); const s=Math.min(1,320/Math.max(img.width,img.height)); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s); const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(img,0,0,c.width,c.height); logoTmp=c.toDataURL('image/jpeg',.85); showLogo();}; img.src=r.result;}; r.readAsDataURL(f);});
 $('saveDatos').addEventListener('click',()=>{
   const n=$('dNombre').value.trim(); if(!n){ $('dNombre').focus(); toast('Escribe tu nombre o el de tu negocio'); return; }
-  datos={nombre:n,oficio:$('dOficio').value,tel:$('dTel').value.trim(),ruc:$('dRuc').value.trim(),ciudad:$('dCiudad').value.trim(),email:$('dEmail').value.trim(),logo:logoTmp};
+  datos={nombre:n,oficio:$('dOficio').value,tel:$('dTel').value.trim(),ruc:$('dRuc').value.trim(),ciudad:$('dCiudad').value.trim(),email:$('dEmail').value.trim(),productos:$('dProd').value.trim(),logo:logoTmp};
   store.set('datos',datos); toast('Datos guardados'); location.hash='#inicio';
 });
 
@@ -557,7 +558,7 @@ function update(){ const c=calc(); $('barTotal').textContent=money(c.total);
 
 const nextNo=()=>store.get('seq',0)+1;
 function docData(){ const c=calc(); return {no:editingNo||nextNo(),fecha:today(),cliente:$('cNombre').value.trim(),ctel:$('cTel').value.trim(),lugar:$('cLugar').value.trim(),items:c.valid.map(it=>({d:String(it.d).trim(),q:num(it.q),p:num(it.p),t:it.t||'s'})),sub:c.sub,iva:c.iva,total:c.total,validez:val,anticipo:ant,plazo:$('plazo').value.trim(),notas:$('notas').value.trim(),conIva:$('iva').checked}; }
-function sheetHTML(d){ const b=D(); const c1=[b.oficio==='Solo vendo productos'?'':b.oficio,b.ciudad].filter(Boolean).join(' · '); const c2=[b.tel&&('Cel. '+b.tel),b.ruc&&('RUC/CI '+b.ruc),b.email].filter(Boolean).join(' · ');
+function sheetHTML(d){ const b=D(); const c1=[b.oficio==='Solo vendo productos'?b.productos:b.oficio,b.ciudad].filter(Boolean).join(' · '); const c2=[b.tel&&('Cel. '+b.tel),b.ruc&&('RUC/CI '+b.ruc),b.email].filter(Boolean).join(' · ');
   return `<div class="hd">${b.logo?`<img src="${b.logo}" alt="">`:''}<div class="biz"><b>${esc(b.nombre||'Tu nombre o negocio')}</b><span>${esc(c1)}</span><span>${esc(c2)}</span></div><div class="no"><b>PROFORMA</b><span>N.º ${fmtNo(d.no)}</span><span>${esc(d.fecha)}</span></div></div>
   <div class="cl"><div><em>Cliente</em>${esc(d.cliente||'—')}</div><div><em>Lugar</em>${esc(d.lugar||'—')}</div>${d.ctel?`<div><em>Teléfono</em>${esc(d.ctel)}</div>`:''}${d.plazo?`<div><em>Tiempo de trabajo</em>${esc(d.plazo)}</div>`:''}</div>
   <table><thead><tr><th class="n">Cant.</th><th>Descripción</th><th class="n">P. unit.</th><th class="n">Total</th></tr></thead><tbody>${d.items.map(it=>`<tr><td class="n">${it.q}</td><td>${esc(it.d)}</td><td class="n">${money(it.p)}</td><td class="n">${money(it.q*it.p)}</td></tr>`).join('')}</tbody></table>
@@ -585,7 +586,7 @@ function buildPDF(d){
   if(b.logo){ try{ doc.addImage(b.logo,'JPEG',M,y,22,22,undefined,'FAST'); x0=M+26; }catch(e){} }
   doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(...NAVY); doc.text(doc.splitTextToSize(b.nombre||'',105),x0,y+6);
   doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...MUTED);
-  doc.text([b.oficio==='Solo vendo productos'?'':b.oficio,b.ciudad].filter(Boolean).join(' · '),x0,y+12); doc.text([b.tel&&('Cel. '+b.tel),b.ruc&&('RUC/CI '+b.ruc)].filter(Boolean).join(' · '),x0,y+16.5); if(b.email) doc.text(b.email,x0,y+21);
+  doc.text([b.oficio==='Solo vendo productos'?b.productos:b.oficio,b.ciudad].filter(Boolean).join(' · '),x0,y+12); doc.text([b.tel&&('Cel. '+b.tel),b.ruc&&('RUC/CI '+b.ruc)].filter(Boolean).join(' · '),x0,y+16.5); if(b.email) doc.text(b.email,x0,y+21);
   doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(...NAVY); doc.text('PROFORMA',W-M,y+6,{align:'right'});
   doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...MUTED); doc.text('N.º '+fmtNo(d.no),W-M,y+12,{align:'right'}); doc.text(d.fecha,W-M,y+16.5,{align:'right'});
   y+=26; doc.setDrawColor(...NAVY); doc.setLineWidth(1); doc.line(M,y,W-M,y); y+=7;
