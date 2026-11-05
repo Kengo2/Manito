@@ -19,18 +19,8 @@
   --ok:#1E7A46; --warn:#A35B00; --danger:#B3261E;
   --display:'Archivo', 'Arial Narrow', Arial, sans-serif;
   --body:'Atkinson Hyperlegible', 'Segoe UI', Arial, sans-serif;
-  --r:18px; --shadow:0 1px 2px rgba(20,32,44,.06), 0 8px 24px rgba(20,32,44,.06);
+  --r:18px; color-scheme:light; --shadow:0 1px 2px rgba(20,32,44,.06), 0 8px 24px rgba(20,32,44,.06);
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0D141B; --surface:#16202A; --sunk:#1C2834; --line:#2B3947;
-  --ink:#E9EEF3; --muted:#B2BECA; --soft:#8796A5;
-  --navy:#0A1C2E; --ok:#55C487; --warn:#F0B14A; --danger:#F2867E;
-  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25); color-scheme:dark }}
-:root[data-theme="dark"]{
-  --bg:#0D141B; --surface:#16202A; --sunk:#1C2834; --line:#2B3947;
-  --ink:#E9EEF3; --muted:#B2BECA; --soft:#8796A5;
-  --navy:#0A1C2E; --ok:#55C487; --warn:#F0B14A; --danger:#F2867E;
-  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25); color-scheme:dark }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--navy)}
@@ -106,8 +96,6 @@ main{max-width:1040px;margin:0 auto;padding-block:20px 140px}
 .steps button{border:0;background:none;padding:0;display:flex;flex-direction:column;gap:6px;text-align:left;color:var(--soft);font-size:13px;font-weight:700}
 .steps button i{display:block;height:6px;border-radius:3px;background:var(--line);transition:background .25s}
 .steps button.done i,.steps button.cur i{background:var(--navy)}
-:root[data-theme="dark"] .steps button.done i,:root[data-theme="dark"] .steps button.cur i{background:var(--yellow)}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .steps button.done i,:root:not([data-theme="light"]) .steps button.cur i{background:var(--yellow)}}
 .steps button.cur{color:var(--ink)}
 .panel{display:none;background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:20px 16px;flex-direction:column;gap:14px}
 .panel.on{display:flex;animation:in .25s ease both}
